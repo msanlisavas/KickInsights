@@ -155,12 +155,47 @@
     // Disconnect observer
     if (observer) { observer.disconnect(); observer = null; }
 
-    // Finalize and save session
-    const session = await KI_Storage.getActiveSession();
-    if (session && sessionStartTime) {
-      session.endTime = new Date().toISOString();
-      session.duration = Math.round((Date.now() - sessionStartTime) / 1000);
-      await KI_Storage.saveSession(session);
+    // Take a final snapshot before saving
+    if (chatParser && sessionStartTime) {
+      const now = Date.now();
+      const windowMs = settings ? settings.rollingWindowMs : KI_CONSTANTS.ROLLING_WINDOW_MS;
+      const kickCount = KI_ViewerCountReader.read();
+      const uniqueChatters = chatParser.getUniqueChatterCount(now, windowMs);
+      const chatRate = chatParser.getChatRate(now, windowMs);
+      const estResult = KI_EstimationEngine.estimate(uniqueChatters, participationRate);
+
+      const finalSnapshot = {
+        time: new Date(now).toISOString(),
+        kickCount: kickCount || 0,
+        estimatedCount: estResult.estimatedViewers,
+        estimatedLow: estResult.low,
+        estimatedHigh: estResult.high,
+        uniqueChatters,
+        chatRate,
+      };
+
+      const session = await KI_Storage.getActiveSession();
+      if (session) {
+        session.snapshots.push(finalSnapshot);
+        session.endTime = new Date(now).toISOString();
+        session.duration = Math.round((now - sessionStartTime) / 1000);
+
+        // Recalculate summary from all snapshots
+        const snaps = session.snapshots;
+        if (snaps.length > 0) {
+          session.summary = {
+            avgKickCount: Math.round(snaps.reduce((s, sn) => s + sn.kickCount, 0) / snaps.length),
+            avgEstimatedCount: Math.round(snaps.reduce((s, sn) => s + sn.estimatedCount, 0) / snaps.length),
+            peakEstimated: Math.max(...snaps.map(sn => sn.estimatedCount)),
+            totalUniqueChatters: chatParser.getUniqueChatterCount(now, now - sessionStartTime),
+          };
+        }
+
+        await KI_Storage.saveSession(session);
+        await KI_Storage.clearActiveSession();
+      }
+    } else {
+      // No chat parser — just clear active session
       await KI_Storage.clearActiveSession();
     }
 
