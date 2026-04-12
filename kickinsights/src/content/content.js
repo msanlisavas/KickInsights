@@ -13,6 +13,8 @@
   let settings = null;
   let observer = null;
   let _seenIndices = new Set();
+  let _totalMessagesWS = 0;   // from WebSocket
+  let _totalMessagesDom = 0;  // from DOM scan
 
   // --- Bootstrap: always run, but don't start tracking ---
 
@@ -28,6 +30,7 @@
     // Listen for WS chat messages (buffered until activated)
     window.addEventListener('message', (event) => {
       if (active && event.data && event.data.type === 'KI_CHAT_MESSAGE') {
+        _totalMessagesWS++;
         recordChatUser(event.data.username);
       }
     });
@@ -225,12 +228,12 @@
       if (_seenIndices.has(idx)) continue;
       _seenIndices.add(idx);
       const username = KI_ChatParser.extractUsernameFromNode(msgNode);
-      if (username) recordChatUser(username);
+      if (username) { _totalMessagesDom++; recordChatUser(username); }
     }
 
     if (msgNodes.length === 0) {
       const username = KI_ChatParser.extractUsernameFromNode(node);
-      if (username) recordChatUser(username);
+      if (username) { _totalMessagesDom++; recordChatUser(username); }
     }
   }
 
@@ -241,7 +244,7 @@
       if (_seenIndices.has(idx)) continue;
       _seenIndices.add(idx);
       const username = KI_ChatParser.extractUsernameFromNode(msgNode);
-      if (username) recordChatUser(username);
+      if (username) { _totalMessagesDom++; recordChatUser(username); }
     }
 
     if (_seenIndices.size > 5000) {
@@ -454,6 +457,9 @@
           censusUserCount: census && census.isActive() ? census.getUniqueUserCount() : 0,
           pendingCensus: _pendingCensus,
           overlayVisible: KI_OverlayGraph._container ? KI_OverlayGraph._container.style.display !== 'none' : false,
+          totalMessagesWS: _totalMessagesWS,
+          totalMessagesDom: _totalMessagesDom,
+          totalEvents: chatParser ? chatParser.getEvents().length : 0,
         });
         return true;
       }

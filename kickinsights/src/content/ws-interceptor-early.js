@@ -9,12 +9,21 @@
   function interceptMessage(event) {
     try {
       const data = JSON.parse(event.data);
-      if (data.event === 'App\\Events\\ChatMessageEvent' ||
-          data.event === 'App\\Events\\ChatMessageSentEvent') {
-        const payload = JSON.parse(data.data);
+
+      // Match all known Kick chat event patterns
+      const eventName = data.event || '';
+      const isChatEvent =
+        eventName === 'App\\Events\\ChatMessageEvent' ||
+        eventName === 'App\\Events\\ChatMessageSentEvent' ||
+        eventName.includes('ChatMessage') ||
+        eventName.includes('chat_message');
+
+      if (isChatEvent && data.data) {
+        const payload = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
         const username = payload.sender?.username ||
                          payload.user?.username ||
-                         payload.username;
+                         payload.username ||
+                         payload.sender?.slug;
         if (username) {
           window.postMessage({
             type: 'KI_CHAT_MESSAGE',
@@ -31,9 +40,7 @@
   // Patch WebSocket constructor to add our listener to every new instance
   window.WebSocket = function(...args) {
     const ws = new OriginalWebSocket(...args);
-
     ws.addEventListener('message', interceptMessage);
-
     return ws;
   };
 
@@ -44,7 +51,6 @@
   window.WebSocket.CLOSING = OriginalWebSocket.CLOSING;
   window.WebSocket.CLOSED = OriginalWebSocket.CLOSED;
 
-  // Preserve instanceof checks
   Object.defineProperty(window.WebSocket, Symbol.hasInstance, {
     value: (instance) => instance instanceof OriginalWebSocket,
   });

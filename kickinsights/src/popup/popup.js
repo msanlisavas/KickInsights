@@ -28,6 +28,9 @@
     dashChatters: document.getElementById('ki-dash-chatters'),
     dashRate: document.getElementById('ki-dash-rate'),
     dashPRate: document.getElementById('ki-dash-prate'),
+    dashWS: document.getElementById('ki-dash-ws'),
+    dashDom: document.getElementById('ki-dash-dom'),
+    dashWindow: document.getElementById('ki-dash-window'),
     dashChart: document.getElementById('ki-dash-chart'),
     historyList: document.getElementById('ki-history-list'),
     historyEmpty: document.getElementById('ki-history-empty'),
@@ -162,6 +165,9 @@
       els.dashChatters.textContent = status.uniqueChatters || '0';
       els.dashRate.textContent = status.chatRate ? `${status.chatRate}/min` : '0/min';
       els.dashPRate.textContent = status.participationRate ? `${(status.participationRate * 100).toFixed(1)}%` : '--';
+      els.dashWS.textContent = status.totalMessagesWS != null ? status.totalMessagesWS : '--';
+      els.dashDom.textContent = status.totalMessagesDom != null ? status.totalMessagesDom : '--';
+      els.dashWindow.textContent = status.totalEvents != null ? status.totalEvents : '--';
 
       // Draw dashboard chart
       loadDashboardChart();
