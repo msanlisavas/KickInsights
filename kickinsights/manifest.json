@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "KickInsights",
+  "version": "0.1.0",
+  "description": "Estimate real viewer counts on Kick.com using chat activity analysis",
+  "permissions": [
+    "storage",
+    "alarms",
+    "downloads",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://kick.com/*",
+    "https://*.kick.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://kick.com/*", "https://*.kick.com/*"],
+      "js": [
+        "src/shared/constants.js",
+        "src/shared/format.js",
+        "src/shared/storage.js",
+        "src/content/chat-parser.js",
+        "src/content/viewer-count-reader.js",
+        "src/content/estimation-engine.js",
+        "src/content/census.js",
+        "src/content/calibration.js",
+        "src/content/dom-injector.js",
+        "src/content/overlay-graph.js",
+        "src/content/content.js"
+      ],
+      "css": ["src/content/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
