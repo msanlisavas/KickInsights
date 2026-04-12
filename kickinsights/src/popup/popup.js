@@ -38,6 +38,8 @@
     rateValue: document.getElementById('ki-rate-value'),
     windowSelect: document.getElementById('ki-window-select'),
     showOverlay: document.getElementById('ki-show-overlay'),
+    clearChannel: document.getElementById('ki-clear-channel'),
+    clearAll: document.getElementById('ki-clear-all'),
   };
 
   let statusInterval = null;
@@ -370,9 +372,49 @@
     sendToContent({ type: 'UPDATE_SETTINGS', settings });
   }
 
+  // Clear data
+  els.clearChannel.addEventListener('click', async () => {
+    const status = currentStatus;
+    const channel = status?.channelName;
+    if (!channel) return;
+    if (!confirm(`Clear all data for "${channel}"? This removes sessions, calibration, and census history for this channel.`)) return;
+
+    // Deactivate first if active
+    if (status.active) await sendToContent({ type: 'DEACTIVATE' });
+
+    // Remove sessions for this channel
+    const sessResult = await chrome.storage.local.get('ki_sessions');
+    const sessions = (sessResult.ki_sessions || []).filter(s => s.channelName !== channel);
+    await chrome.storage.local.set({ ki_sessions: sessions });
+
+    // Remove calibration profile
+    const calResult = await chrome.storage.local.get('ki_calibration_profiles');
+    const profiles = calResult.ki_calibration_profiles || {};
+    delete profiles[channel];
+    await chrome.storage.local.set({ ki_calibration_profiles: profiles });
+
+    // Clear active session if it's this channel
+    await chrome.storage.local.remove('ki_active_session');
+
+    pollStatus();
+  });
+
+  els.clearAll.addEventListener('click', async () => {
+    if (!confirm('Clear ALL KickInsights data? This removes all sessions, calibration profiles, and settings.')) return;
+
+    if (currentStatus?.active) await sendToContent({ type: 'DEACTIVATE' });
+
+    await chrome.storage.local.remove([
+      'ki_sessions', 'ki_calibration_profiles', 'ki_settings',
+      'ki_active_session', 'ki_overlay_state',
+    ]);
+
+    pollStatus();
+    loadSettings();
+  });
+
   // Init
   loadSettings();
-  loadLastCensusResult();
   pollStatus();
   statusInterval = setInterval(pollStatus, 2000);
 })();
