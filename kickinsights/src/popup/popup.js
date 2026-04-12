@@ -367,9 +367,19 @@
   });
 
   els.exportCard.addEventListener('click', async () => {
-    const result = await chrome.storage.local.get('ki_active_session');
-    const session = result.ki_active_session;
-    if (!session) return;
+    // Try active session first, then most recent saved session
+    let session = null;
+    const activeResult = await chrome.storage.local.get('ki_active_session');
+    if (activeResult.ki_active_session && activeResult.ki_active_session.snapshots?.length > 0) {
+      session = activeResult.ki_active_session;
+    } else {
+      const sessResult = await chrome.storage.local.get('ki_sessions');
+      const sessions = sessResult.ki_sessions || [];
+      if (sessions.length > 0) {
+        session = sessions[sessions.length - 1]; // most recent
+      }
+    }
+    if (!session || !session.summary) return;
 
     KI_SummaryCard.render(els.summaryCanvas, session);
     els.summaryCanvas.style.display = 'block';
