@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KickInsights</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="ki-popup">
+    <header class="ki-header">
+      <h1>KickInsights</h1>
+      <span id="ki-channel-name" class="ki-channel"></span>
+    </header>
+
+    <section class="ki-status">
+      <div class="ki-stat">
+        <span class="ki-stat-label">Kick Count</span>
+        <span id="ki-kick-count" class="ki-stat-value">--</span>
+      </div>
+      <div class="ki-stat ki-stat-primary">
+        <span class="ki-stat-label">Estimated</span>
+        <span id="ki-est-count" class="ki-stat-value">--</span>
+      </div>
+      <div class="ki-stat">
+        <span class="ki-stat-label">Confidence</span>
+        <span id="ki-confidence" class="ki-stat-value">--</span>
+      </div>
+    </section>
+
+    <nav class="ki-tabs">
+      <button class="ki-tab ki-tab-active" data-tab="census">Census</button>
+      <button class="ki-tab" data-tab="calibration">Calibration</button>
+      <button class="ki-tab" data-tab="graph">Graph</button>
+      <button class="ki-tab" data-tab="history">History</button>
+      <button class="ki-tab" data-tab="export">Export</button>
+      <button class="ki-tab" data-tab="settings">Settings</button>
+    </nav>
+
+    <section id="ki-panel-census" class="ki-panel">
+      <div id="ki-census-idle">
+        <p>Ask your viewers to type in chat, then start the census to count unique participants.</p>
+        <button id="ki-census-start" class="ki-btn ki-btn-primary">Start Census (60s)</button>
+      </div>
+      <div id="ki-census-active" style="display:none">
+        <div class="ki-census-countdown">
+          <span id="ki-census-timer">60</span>s remaining
+        </div>
+        <div class="ki-census-live">
+          <span id="ki-census-live-count">0</span> unique chatters counted
+        </div>
+        <button id="ki-census-stop" class="ki-btn ki-btn-secondary">End Early</button>
+      </div>
+      <div id="ki-census-result" style="display:none">
+        <h3>Last Census Result</h3>
+        <p><strong id="ki-census-result-count">0</strong> unique chatters in window</p>
+        <p>Kick showed: <strong id="ki-census-result-kick">0</strong></p>
+        <p>Derived rate: <strong id="ki-census-result-rate">0%</strong></p>
+      </div>
+    </section>
+
+    <section id="ki-panel-calibration" class="ki-panel" style="display:none">
+      <div class="ki-calibration-stats">
+        <div class="ki-stat-row">
+          <span>Learned participation rate:</span>
+          <strong id="ki-cal-rate">5.0%</strong>
+        </div>
+        <div class="ki-stat-row">
+          <span>Censuses completed:</span>
+          <strong id="ki-cal-count">0</strong>
+        </div>
+        <div class="ki-stat-row">
+          <span>Trend:</span>
+          <strong id="ki-cal-trend">--</strong>
+        </div>
+      </div>
+      <div id="ki-cal-history-list" class="ki-list"></div>
+    </section>
+
+    <section id="ki-panel-graph" class="ki-panel" style="display:none">
+      <canvas id="ki-popup-chart" width="360" height="200"></canvas>
+    </section>
+
+    <section id="ki-panel-history" class="ki-panel" style="display:none">
+      <div id="ki-history-list" class="ki-list"></div>
+      <p id="ki-history-empty" style="display:none" class="ki-muted">No sessions recorded yet.</p>
+    </section>
+
+    <section id="ki-panel-export" class="ki-panel" style="display:none">
+      <div class="ki-export-options">
+        <button id="ki-export-csv" class="ki-btn">Export CSV</button>
+        <button id="ki-export-json" class="ki-btn">Export JSON</button>
+        <button id="ki-export-card" class="ki-btn ki-btn-primary">Generate Summary Card</button>
+      </div>
+      <canvas id="ki-summary-card-canvas" width="600" height="400" style="display:none"></canvas>
+      <div id="ki-card-actions" style="display:none">
+        <button id="ki-card-download" class="ki-btn">Download PNG</button>
+        <button id="ki-card-copy" class="ki-btn">Copy to Clipboard</button>
+      </div>
+    </section>
+
+    <section id="ki-panel-settings" class="ki-panel" style="display:none">
+      <div class="ki-setting">
+        <label for="ki-rate-slider">Manual participation rate: <span id="ki-rate-value">5%</span></label>
+        <input type="range" id="ki-rate-slider" min="1" max="30" value="5" step="0.5">
+        <p class="ki-muted">Overridden by learned rate when census data is available.</p>
+      </div>
+      <div class="ki-setting">
+        <label for="ki-window-select">Rolling window:</label>
+        <select id="ki-window-select">
+          <option value="120000">2 minutes</option>
+          <option value="300000" selected>5 minutes</option>
+          <option value="600000">10 minutes</option>
+        </select>
+      </div>
+      <div class="ki-setting">
+        <label>
+          <input type="checkbox" id="ki-show-overlay" checked>
+          Show overlay graph on stream page
+        </label>
+      </div>
+    </section>
+  </div>
+
+  <script src="../shared/constants.js"></script>
+  <script src="../shared/format.js"></script>
+  <script src="chart-renderer.js"></script>
+  <script src="summary-card.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
