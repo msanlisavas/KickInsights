@@ -60,6 +60,9 @@
     return null;
   }
 
+  // Track which data-index values we've already processed
+  let _seenIndices = new Set();
+
   function observeChat() {
     const chatContainer = document.querySelector(KI_CONSTANTS.SELECTORS.CHAT_CONTAINER);
     if (!chatContainer) {
@@ -67,30 +70,86 @@
       return;
     }
 
+    // MutationObserver for real-time catching of newly added nodes
     observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
           if (node.nodeType !== Node.ELEMENT_NODE) continue;
-
-          const username = KI_ChatParser.extractUsernameFromNode(node);
-          if (username) {
-            const now = Date.now();
-            chatParser.processMessage(username, now);
-
-            if (census.isActive()) {
-              census.recordUser(username, now);
-
-              if (census.getRemainingMs(now) === 0) {
-                finishCensus();
-              }
-            }
-          }
+          processNewChatNode(node);
         }
       }
     });
 
     observer.observe(chatContainer, { childList: true, subtree: true });
+
+    // Periodic scan to catch messages missed by MutationObserver.
+    // Kick's virtualized chat recycles DOM nodes, so many messages
+    // are content updates rather than new node additions.
+    setInterval(() => scanVisibleMessages(chatContainer), 2000);
+
     console.log('[KickInsights] Chat observer started');
+  }
+
+  function processNewChatNode(node) {
+    // Check if this node (or its children) contain data-index messages
+    const msgNodes = [];
+    if (node.hasAttribute && node.hasAttribute('data-index')) {
+      msgNodes.push(node);
+    }
+    if (node.querySelectorAll) {
+      msgNodes.push(...node.querySelectorAll('[data-index]'));
+    }
+
+    for (const msgNode of msgNodes) {
+      const idx = msgNode.getAttribute('data-index');
+      if (_seenIndices.has(idx)) continue;
+      _seenIndices.add(idx);
+
+      const username = KI_ChatParser.extractUsernameFromNode(msgNode);
+      if (username) {
+        recordChatUser(username);
+      }
+    }
+
+    // Fallback: try extracting directly from the node if no data-index found
+    if (msgNodes.length === 0) {
+      const username = KI_ChatParser.extractUsernameFromNode(node);
+      if (username) {
+        recordChatUser(username);
+      }
+    }
+  }
+
+  function scanVisibleMessages(chatContainer) {
+    const msgNodes = chatContainer.querySelectorAll('[data-index]');
+    for (const msgNode of msgNodes) {
+      const idx = msgNode.getAttribute('data-index');
+      if (_seenIndices.has(idx)) continue;
+      _seenIndices.add(idx);
+
+      const username = KI_ChatParser.extractUsernameFromNode(msgNode);
+      if (username) {
+        recordChatUser(username);
+      }
+    }
+
+    // Keep the seen set from growing unbounded
+    if (_seenIndices.size > 5000) {
+      const arr = [..._seenIndices];
+      _seenIndices = new Set(arr.slice(arr.length - 2000));
+    }
+  }
+
+  function recordChatUser(username) {
+    const now = Date.now();
+    chatParser.processMessage(username, now);
+
+    if (census.isActive()) {
+      census.recordUser(username, now);
+      if (census.getRemainingMs(now) === 0) {
+        finishCensus();
+      }
+    }
   }
 
   function updateEstimate() {
