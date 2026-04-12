@@ -453,6 +453,7 @@
           censusRemainingMs: census && census.isActive() ? census.getRemainingMs(now) : 0,
           censusUserCount: census && census.isActive() ? census.getUniqueUserCount() : 0,
           pendingCensus: _pendingCensus,
+          overlayVisible: KI_OverlayGraph._container ? KI_OverlayGraph._container.style.display !== 'none' : false,
         });
         return true;
       }
@@ -476,6 +477,14 @@
       case 'DISMISS_CENSUS':
         _pendingCensus = null;
         sendResponse({ ok: true });
+        return true;
+      case 'SHOW_OVERLAY':
+        KI_OverlayGraph.show();
+        sendResponse({ ok: true, visible: true });
+        return true;
+      case 'HIDE_OVERLAY':
+        KI_OverlayGraph.hide();
+        sendResponse({ ok: true, visible: false });
         return true;
       case 'UPDATE_SETTINGS':
         settings = message.settings;

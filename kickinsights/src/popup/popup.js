@@ -40,6 +40,8 @@
     showOverlay: document.getElementById('ki-show-overlay'),
     clearChannel: document.getElementById('ki-clear-channel'),
     clearAll: document.getElementById('ki-clear-all'),
+    overlayToggleRow: document.getElementById('ki-overlay-toggle-row'),
+    toggleOverlay: document.getElementById('ki-toggle-overlay'),
   };
 
   let statusInterval = null;
@@ -71,6 +73,17 @@
     return chrome.tabs.sendMessage(tab.id, message);
   }
 
+  // Overlay toggle
+  els.toggleOverlay.addEventListener('click', async () => {
+    const status = currentStatus;
+    if (status && status.overlayVisible) {
+      await sendToContent({ type: 'HIDE_OVERLAY' });
+    } else {
+      await sendToContent({ type: 'SHOW_OVERLAY' });
+    }
+    setTimeout(pollStatus, 200);
+  });
+
   // Activation toggle
   els.toggleActive.addEventListener('click', async () => {
     const status = currentStatus;
@@ -99,6 +112,7 @@
       els.activeLabel.textContent = 'Inactive';
       els.activeLabel.style.color = '#888';
       els.statusSection.style.display = 'none';
+      els.overlayToggleRow.style.display = 'none';
       document.querySelector('.ki-tabs').style.display = 'none';
       // Hide all panels
       document.querySelectorAll('.ki-panel').forEach(p => p.style.display = 'none');
@@ -122,6 +136,10 @@
         els.rateSlider.value = pct;
         els.rateValue.textContent = pct.toFixed(1) + '%';
       }
+
+      // Show overlay toggle
+      els.overlayToggleRow.style.display = '';
+      els.toggleOverlay.textContent = status.overlayVisible ? 'Hide Overlay' : 'Show Overlay';
 
       els.kickCount.textContent = status.kickCount ? KI_Format.compactNumber(status.kickCount) : '--';
       els.estCount.textContent = (status.estimatedLow && status.estimatedHigh)
