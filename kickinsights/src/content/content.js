@@ -337,6 +337,9 @@
     console.log('[KickInsights] Census started');
   }
 
+  // Last census result, pending user confirmation before calibration
+  let _pendingCensus = null;
+
   async function finishCensus() {
     if (!census) return;
     census.stop();
@@ -351,20 +354,52 @@
       result.uniqueUsers, passiveUniqueChatters, kickCount
     );
 
-    const censusRecord = {
+    _pendingCensus = {
       time: new Date(result.startTime).toISOString(),
       uniqueUsers: result.uniqueUsers,
       kickCountAtTime: kickCount,
+      passiveUniqueChatters,
       derivedRate,
     };
 
-    // Save to per-channel calibration profile
+    // Save to session (for history) but do NOT auto-calibrate
+    const session = await KI_Storage.getActiveSession();
+    if (session) {
+      session.censuses.push({
+        time: _pendingCensus.time,
+        uniqueUsers: _pendingCensus.uniqueUsers,
+        kickCountAtTime: kickCount,
+        derivedRate,
+      });
+      await KI_Storage.saveActiveSession(session);
+    }
+
+    console.log(`[KickInsights] Census complete: ${result.uniqueUsers} unique users, derived rate: ${derivedRate.toFixed(4)} (pending confirmation)`);
+  }
+
+  async function applyCensusCalibration() {
+    if (!_pendingCensus) return { ok: false, error: 'No pending census' };
+
+    const census = _pendingCensus;
+    _pendingCensus = null;
+
+    // Sanity check: reject rates above 20% (means census didn't get enough
+    // extra chatters vs passive — streamer probably didn't ask chat to type)
+    if (census.derivedRate > 0.20) {
+      console.log(`[KickInsights] Census rate ${(census.derivedRate * 100).toFixed(1)}% is too high — rejected. Ask viewers to type in chat during census.`);
+      return {
+        ok: false,
+        error: `Rate ${(census.derivedRate * 100).toFixed(1)}% is too high. Census works best when the streamer asks everyone to type.`,
+      };
+    }
+
+    // Apply calibration
     const profile = await KI_Storage.getCalibrationProfile(channelName);
     profile.censusHistory.push({
-      timestamp: censusRecord.time,
-      derivedRate,
-      uniqueUsers: result.uniqueUsers,
-      kickCountAtTime: kickCount,
+      timestamp: census.time,
+      derivedRate: census.derivedRate,
+      uniqueUsers: census.uniqueUsers,
+      kickCountAtTime: census.kickCountAtTime,
     });
     profile.learnedParticipationRate = KI_Calibration.computeWeightedRate(
       profile.censusHistory, settings.participationRate
@@ -374,14 +409,8 @@
 
     participationRate = profile.learnedParticipationRate;
 
-    // Save to session
-    const session = await KI_Storage.getActiveSession();
-    if (session) {
-      session.censuses.push(censusRecord);
-      await KI_Storage.saveActiveSession(session);
-    }
-
-    console.log(`[KickInsights] Census complete: ${result.uniqueUsers} unique users, derived rate: ${derivedRate.toFixed(4)}`);
+    console.log(`[KickInsights] Census calibration applied. New rate: ${(participationRate * 100).toFixed(2)}%`);
+    return { ok: true, newRate: participationRate };
   }
 
   // --- Message handling from popup ---
@@ -414,6 +443,7 @@
           censusActive: census ? census.isActive() : false,
           censusRemainingMs: census && census.isActive() ? census.getRemainingMs(now) : 0,
           censusUserCount: census && census.isActive() ? census.getUniqueUserCount() : 0,
+          pendingCensus: _pendingCensus,
         });
         return true;
       }
@@ -429,6 +459,13 @@
         return true;
       case 'STOP_CENSUS':
         finishCensus();
+        sendResponse({ ok: true });
+        return true;
+      case 'APPLY_CENSUS':
+        applyCensusCalibration().then(result => sendResponse(result));
+        return true;
+      case 'DISMISS_CENSUS':
+        _pendingCensus = null;
         sendResponse({ ok: true });
         return true;
       case 'UPDATE_SETTINGS':

@@ -60,10 +60,16 @@
         <button id="ki-census-stop" class="ki-btn ki-btn-secondary">End Early</button>
       </div>
       <div id="ki-census-result" style="display:none">
-        <h3>Last Census Result</h3>
+        <h3>Census Result (pending)</h3>
         <p><strong id="ki-census-result-count">0</strong> unique chatters in window</p>
         <p>Kick showed: <strong id="ki-census-result-kick">0</strong></p>
         <p>Derived rate: <strong id="ki-census-result-rate">0%</strong></p>
+        <p class="ki-muted">Apply this to calibrate the estimation model, or dismiss if the streamer didn't ask chat to type.</p>
+        <div style="display:flex; gap:8px; margin-top:8px">
+          <button id="ki-census-apply" class="ki-btn ki-btn-primary">Apply Calibration</button>
+          <button id="ki-census-dismiss" class="ki-btn ki-btn-secondary">Dismiss</button>
+        </div>
+        <p id="ki-census-error" class="ki-muted" style="display:none; color:#f59e0b; margin-top:6px"></p>
       </div>
     </section>
 

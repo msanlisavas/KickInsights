@@ -17,6 +17,9 @@
     censusResultCount: document.getElementById('ki-census-result-count'),
     censusResultKick: document.getElementById('ki-census-result-kick'),
     censusResultRate: document.getElementById('ki-census-result-rate'),
+    censusApply: document.getElementById('ki-census-apply'),
+    censusDismiss: document.getElementById('ki-census-dismiss'),
+    censusError: document.getElementById('ki-census-error'),
     calRate: document.getElementById('ki-cal-rate'),
     calCount: document.getElementById('ki-cal-count'),
     calTrend: document.getElementById('ki-cal-trend'),
@@ -86,8 +89,7 @@
       els.activeLabel.textContent = 'Active';
       els.activeLabel.style.color = '#53fc18';
       els.statusSection.style.display = '';
-      // Show all tabs
-      document.querySelectorAll('.ki-tabs, .ki-panel').forEach(el => el.style.removeProperty('display'));
+      document.querySelector('.ki-tabs').style.display = '';
     } else {
       els.toggleActive.textContent = 'Start Tracking';
       els.toggleActive.classList.remove('ki-btn-secondary');
@@ -95,6 +97,9 @@
       els.activeLabel.textContent = 'Inactive';
       els.activeLabel.style.color = '#888';
       els.statusSection.style.display = 'none';
+      document.querySelector('.ki-tabs').style.display = 'none';
+      // Hide all panels
+      document.querySelectorAll('.ki-panel').forEach(p => p.style.display = 'none');
     }
   }
 
@@ -115,14 +120,26 @@
         : '--';
       els.confidence.textContent = status.confidence || '--';
 
-      if (status.censusActive) {
-        els.censusIdle.style.display = 'none';
-        els.censusActive.style.display = 'block';
-        els.censusTimer.textContent = Math.ceil(status.censusRemainingMs / 1000);
-        els.censusLiveCount.textContent = status.censusUserCount;
-      } else {
-        els.censusActive.style.display = 'none';
-        els.censusIdle.style.display = 'block';
+      // Only update census sub-panels if census tab is currently visible
+      if (els.censusIdle.parentElement.style.display !== 'none') {
+        if (status.censusActive) {
+          els.censusIdle.style.display = 'none';
+          els.censusActive.style.display = 'block';
+          els.censusResult.style.display = 'none';
+          els.censusTimer.textContent = Math.ceil(status.censusRemainingMs / 1000);
+          els.censusLiveCount.textContent = status.censusUserCount;
+        } else if (status.pendingCensus) {
+          els.censusIdle.style.display = 'none';
+          els.censusActive.style.display = 'none';
+          els.censusResult.style.display = 'block';
+          els.censusResultCount.textContent = status.pendingCensus.uniqueUsers;
+          els.censusResultKick.textContent = KI_Format.compactNumber(status.pendingCensus.kickCountAtTime);
+          els.censusResultRate.textContent = (status.pendingCensus.derivedRate * 100).toFixed(1) + '%';
+        } else {
+          els.censusActive.style.display = 'none';
+          els.censusResult.style.display = 'none';
+          els.censusIdle.style.display = 'block';
+        }
       }
     } catch (e) {
       els.channelName.textContent = 'Not on a Kick stream';
@@ -137,7 +154,25 @@
 
   els.censusStop.addEventListener('click', async () => {
     await sendToContent({ type: 'STOP_CENSUS' });
-    setTimeout(loadLastCensusResult, 500);
+  });
+
+  els.censusApply.addEventListener('click', async () => {
+    const result = await sendToContent({ type: 'APPLY_CENSUS' });
+    if (result && result.ok) {
+      els.censusError.style.display = 'none';
+      els.censusResult.style.display = 'none';
+      els.censusIdle.style.display = 'block';
+    } else {
+      els.censusError.textContent = result?.error || 'Failed to apply';
+      els.censusError.style.display = 'block';
+    }
+  });
+
+  els.censusDismiss.addEventListener('click', async () => {
+    await sendToContent({ type: 'DISMISS_CENSUS' });
+    els.censusResult.style.display = 'none';
+    els.censusIdle.style.display = 'block';
+    els.censusError.style.display = 'none';
   });
 
   async function loadLastCensusResult() {
