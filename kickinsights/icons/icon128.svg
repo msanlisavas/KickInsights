@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#0e0e10"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="128" height="128" rx="23.04" fill="url(#bg)"/>
+  <!-- Eye shape (outer) -->
+  <path d="M 12.8 64 Q 64 19.200000000000003 115.2 64 Q 64 108.8 12.8 64"
+        fill="none" stroke="#53fc18" stroke-width="3.84" stroke-linejoin="round"/>
+  <!-- Pupil -->
+  <circle cx="64" cy="64" r="14.336000000000002" fill="#53fc18" opacity="0.3"/>
+  <circle cx="64" cy="64" r="7.68" fill="#53fc18"/>
+  <!-- Chart line inside eye -->
+  <polyline points="40.959999999999994,69.12 56.32,53.76 69.12,66.56 84.48,48.64"
+            fill="none" stroke="#53fc18" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

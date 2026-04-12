@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head><title>KickInsights Icon Renderer</title></head>
+<body style="background:#333; padding:20px; font-family:system-ui; color:#fff">
+<h2>Right-click each icon → Save Image As → save to icons/ folder</h2>
+
+<div style="margin:20px 0">
+  <p>icon16.png (16x16)</p>
+  <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYmciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMWExYTJlIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzBlMGUxMCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPCEtLSBCYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgcng9IjIuODgiIGZpbGw9InVybCgjYmcpIi8+CiAgPCEtLSBFeWUgc2hhcGUgKG91dGVyKSAtLT4KICA8cGF0aCBkPSJNIDEuNiA4IFEgOCAyLjQwMDAwMDAwMDAwMDAwMDQgMTQuNCA4IFEgOCAxMy42IDEuNiA4IgogICAgICAgIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzUzZmMxOCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICA8IS0tIFB1cGlsIC0tPgogIDxjaXJjbGUgY3g9IjgiIGN5PSI4IiByPSIxLjc5MjAwMDAwMDAwMDAwMDMiIGZpbGw9IiM1M2ZjMTgiIG9wYWNpdHk9IjAuMyIvPgogIDxjaXJjbGUgY3g9IjgiIGN5PSI4IiByPSIwLjk2IiBmaWxsPSIjNTNmYzE4Ii8+CiAgPCEtLSBDaGFydCBsaW5lIGluc2lkZSBleWUgLS0+CiAgPHBvbHlsaW5lIHBvaW50cz0iNS4xMTk5OTk5OTk5OTk5OTksOC42NCA3LjA0LDYuNzIgOC42NCw4LjMyIDEwLjU2LDYuMDgiCiAgICAgICAgICAgIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzUzZmMxOCIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+" width="16" height="16" style="background:#0e0e10; border:1px solid #555">
+  <canvas id="c16" width="16" height="16" style="display:none"></canvas>
+  <a id="dl16" style="margin-left:10px; color:#53fc18; cursor:pointer">Download PNG</a>
+</div>
+<div style="margin:20px 0">
+  <p>icon48.png (48x48)</p>
+  <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4Ij4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYmciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMWExYTJlIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzBlMGUxMCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPCEtLSBCYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgcng9IjguNjQiIGZpbGw9InVybCgjYmcpIi8+CiAgPCEtLSBFeWUgc2hhcGUgKG91dGVyKSAtLT4KICA8cGF0aCBkPSJNIDQuODAwMDAwMDAwMDAwMDAxIDI0IFEgMjQgNy4yMDAwMDAwMDAwMDAwMDEgNDMuMiAyNCBRIDI0IDQwLjggNC44MDAwMDAwMDAwMDAwMDEgMjQiCiAgICAgICAgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNTNmYzE4IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgogIDwhLS0gUHVwaWwgLS0+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIyNCIgcj0iNS4zNzYiIGZpbGw9IiM1M2ZjMTgiIG9wYWNpdHk9IjAuMyIvPgogIDxjaXJjbGUgY3g9IjI0IiBjeT0iMjQiIHI9IjIuODgiIGZpbGw9IiM1M2ZjMTgiLz4KICA8IS0tIENoYXJ0IGxpbmUgaW5zaWRlIGV5ZSAtLT4KICA8cG9seWxpbmUgcG9pbnRzPSIxNS4zNiwyNS45MiAyMS4xMiwyMC4xNiAyNS45MiwyNC45NiAzMS42OCwxOC4yNDAwMDAwMDAwMDAwMDIiCiAgICAgICAgICAgIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzUzZmMxOCIgc3Ryb2tlLXdpZHRoPSIxLjIwMDAwMDAwMDAwMDAwMDIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4=" width="48" height="48" style="background:#0e0e10; border:1px solid #555">
+  <canvas id="c48" width="48" height="48" style="display:none"></canvas>
+  <a id="dl48" style="margin-left:10px; color:#53fc18; cursor:pointer">Download PNG</a>
+</div>
+<div style="margin:20px 0">
+  <p>icon128.png (128x128)</p>
+  <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFhMWEyZSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMwZTBlMTAiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDwhLS0gQmFja2dyb3VuZCAtLT4KICA8cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjIzLjA0IiBmaWxsPSJ1cmwoI2JnKSIvPgogIDwhLS0gRXllIHNoYXBlIChvdXRlcikgLS0+CiAgPHBhdGggZD0iTSAxMi44IDY0IFEgNjQgMTkuMjAwMDAwMDAwMDAwMDAzIDExNS4yIDY0IFEgNjQgMTA4LjggMTIuOCA2NCIKICAgICAgICBmaWxsPSJub25lIiBzdHJva2U9IiM1M2ZjMTgiIHN0cm9rZS13aWR0aD0iMy44NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgogIDwhLS0gUHVwaWwgLS0+CiAgPGNpcmNsZSBjeD0iNjQiIGN5PSI2NCIgcj0iMTQuMzM2MDAwMDAwMDAwMDAyIiBmaWxsPSIjNTNmYzE4IiBvcGFjaXR5PSIwLjMiLz4KICA8Y2lyY2xlIGN4PSI2NCIgY3k9IjY0IiByPSI3LjY4IiBmaWxsPSIjNTNmYzE4Ii8+CiAgPCEtLSBDaGFydCBsaW5lIGluc2lkZSBleWUgLS0+CiAgPHBvbHlsaW5lIHBvaW50cz0iNDAuOTU5OTk5OTk5OTk5OTk0LDY5LjEyIDU2LjMyLDUzLjc2IDY5LjEyLDY2LjU2IDg0LjQ4LDQ4LjY0IgogICAgICAgICAgICBmaWxsPSJub25lIiBzdHJva2U9IiM1M2ZjMTgiIHN0cm9rZS13aWR0aD0iMy4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+" width="128" height="128" style="background:#0e0e10; border:1px solid #555">
+  <canvas id="c128" width="128" height="128" style="display:none"></canvas>
+  <a id="dl128" style="margin-left:10px; color:#53fc18; cursor:pointer">Download PNG</a>
+</div>
+<script>
+
+(function() {
+  const img = document.querySelector('img[width="16"]');
+  const canvas = document.getElementById('c16');
+  const link = document.getElementById('dl16');
+  img.onload = function() {
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, 16, 16);
+    link.onclick = function() {
+      const a = document.createElement('a');
+      a.download = 'icon16.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    };
+  };
+  if (img.complete) img.onload();
+})();
+
+(function() {
+  const img = document.querySelector('img[width="48"]');
+  const canvas = document.getElementById('c48');
+  const link = document.getElementById('dl48');
+  img.onload = function() {
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, 48, 48);
+    link.onclick = function() {
+      const a = document.createElement('a');
+      a.download = 'icon48.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    };
+  };
+  if (img.complete) img.onload();
+})();
+
+(function() {
+  const img = document.querySelector('img[width="128"]');
+  const canvas = document.getElementById('c128');
+  const link = document.getElementById('dl128');
+  img.onload = function() {
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, 128, 128);
+    link.onclick = function() {
+      const a = document.createElement('a');
+      a.download = 'icon128.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    };
+  };
+  if (img.complete) img.onload();
+})();
+
+</script>
+</body>
+</html>

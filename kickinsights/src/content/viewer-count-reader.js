@@ -12,11 +12,14 @@ var KI_ViewerCountReader = {
 
     // Try the odometer approach first (Kick's current implementation)
     const odometerValue = this._readOdometer(container);
-    if (odometerValue !== null) return odometerValue;
+    if (odometerValue !== null && odometerValue < 10_000_000) return odometerValue;
 
     // Fallback: try plain text parsing
     const text = container.textContent.trim();
-    return this._parseCount(text);
+    const parsed = this._parseCount(text);
+    // Sanity: reject absurd numbers (from concatenated odometer digits)
+    if (parsed !== null && parsed < 10_000_000) return parsed;
+    return null;
   },
 
   /**

@@ -1,4 +1,5 @@
-const KI_CONSTANTS = {
+if (typeof KI_CONSTANTS !== 'undefined') { /* already loaded */ } else
+var KI_CONSTANTS = {
   DEFAULT_PARTICIPATION_RATE: 0.03,
   // Range estimation: optimistic assumes fewer chat, pessimistic assumes more
   OPTIMISTIC_RATE_MULTIPLIER: 0.5,   // rate * 0.5 → higher viewer estimate

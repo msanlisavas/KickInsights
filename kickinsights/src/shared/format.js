@@ -1,14 +1,18 @@
 if (typeof KI_Format !== 'undefined') { /* already loaded */ } else
 var KI_Format = {
   compactNumber(num) {
-    if (num === 0) return '0';
+    if (!num || !isFinite(num) || num < 0) return '0';
+    num = Math.round(num);
     if (num < 1000) return String(num);
     if (num < 1_000_000) {
       const val = num / 1000;
       return (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1).replace(/\.0$/, '')) + 'K';
     }
-    const val = num / 1_000_000;
-    return (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1).replace(/\.0$/, '')) + 'M';
+    if (num < 1_000_000_000) {
+      const val = num / 1_000_000;
+      return (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1).replace(/\.0$/, '')) + 'M';
+    }
+    return '999M+';
   },
 
   formatDuration(totalSeconds) {
