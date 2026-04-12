@@ -54,23 +54,25 @@
 
     // Detect SPA navigation (Kick doesn't reload the page between channels)
     let lastUrl = window.location.href;
-    const urlObserver = new MutationObserver(() => {
+
+    function checkUrlChange() {
       if (window.location.href !== lastUrl) {
         const oldUrl = lastUrl;
         lastUrl = window.location.href;
         onUrlChange(oldUrl, lastUrl);
       }
-    });
+    }
+
+    // Multiple detection strategies — Kick's SPA is unpredictable
+    // 1. MutationObserver on body
+    const urlObserver = new MutationObserver(checkUrlChange);
     urlObserver.observe(document.body, { childList: true, subtree: true });
 
-    // Also listen for popstate (back/forward)
-    window.addEventListener('popstate', () => {
-      if (window.location.href !== lastUrl) {
-        const oldUrl = lastUrl;
-        lastUrl = window.location.href;
-        onUrlChange(oldUrl, lastUrl);
-      }
-    });
+    // 2. Popstate for back/forward
+    window.addEventListener('popstate', checkUrlChange);
+
+    // 3. Periodic check as reliable fallback (every 1 second)
+    setInterval(checkUrlChange, 1000);
 
     console.log(`[KickInsights] Ready for channel: ${channelName} (inactive — click Start to begin)`);
   }
