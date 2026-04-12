@@ -296,14 +296,23 @@ const KI_OverlayGraph = {
 
     const kickCounts = this._snapshots.map(s => s.kickCount);
     const estCounts = this._snapshots.map(s => s.estimatedCount);
-    const allValues = [...kickCounts, ...estCounts].filter(v => v > 0);
+    const estLow = this._snapshots.map(s => s.estimatedLow || s.estimatedCount);
+    const estHigh = this._snapshots.map(s => s.estimatedHigh || s.estimatedCount);
+    const allValues = [...kickCounts, ...estHigh].filter(v => v > 0);
 
     if (allValues.length === 0) return;
 
     const maxVal = Math.max(...allValues) * 1.1;
     const stepX = drawW / (this._snapshots.length - 1);
 
-    // Draw lines
+    // Draw range band (filled area between low and high)
+    this._drawRangeBand(ctx, estLow, estHigh, stepX, pad, drawH, maxVal, '#10b98120');
+
+    // Draw dashed low/high lines
+    this._drawLine(ctx, estLow, stepX, pad, drawH, maxVal, '#10b98155', 1, [4, 4]);
+    this._drawLine(ctx, estHigh, stepX, pad, drawH, maxVal, '#10b98155', 1, [4, 4]);
+
+    // Draw solid lines
     this._drawLine(ctx, kickCounts, stepX, pad, drawH, maxVal, '#f97316', 1.5);
     this._drawLine(ctx, estCounts, stepX, pad, drawH, maxVal, '#10b981', 2);
 
@@ -313,6 +322,8 @@ const KI_OverlayGraph = {
     ctx.fillText('Kick', pad.left, 12);
     ctx.fillStyle = '#10b981';
     ctx.fillText('Est.', pad.left + 40, 12);
+    ctx.fillStyle = '#10b98177';
+    ctx.fillText('Range', pad.left + 72, 12);
 
     ctx.fillStyle = '#555';
     ctx.textAlign = 'right';
@@ -320,10 +331,11 @@ const KI_OverlayGraph = {
     ctx.textAlign = 'left';
   },
 
-  _drawLine(ctx, values, stepX, pad, drawH, maxVal, color, lineWidth) {
+  _drawLine(ctx, values, stepX, pad, drawH, maxVal, color, lineWidth, dash) {
     ctx.beginPath();
     ctx.strokeStyle = color;
     ctx.lineWidth = lineWidth;
+    ctx.setLineDash(dash || []);
 
     for (let i = 0; i < values.length; i++) {
       const x = pad.left + i * stepX;
@@ -333,6 +345,31 @@ const KI_OverlayGraph = {
     }
 
     ctx.stroke();
+    ctx.setLineDash([]);
+  },
+
+  _drawRangeBand(ctx, lowValues, highValues, stepX, pad, drawH, maxVal, color) {
+    if (lowValues.length < 2) return;
+    ctx.beginPath();
+    ctx.fillStyle = color;
+
+    // Top edge (high values, left to right)
+    for (let i = 0; i < highValues.length; i++) {
+      const x = pad.left + i * stepX;
+      const y = pad.top + drawH - (highValues[i] / maxVal) * drawH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+
+    // Bottom edge (low values, right to left)
+    for (let i = lowValues.length - 1; i >= 0; i--) {
+      const x = pad.left + i * stepX;
+      const y = pad.top + drawH - (lowValues[i] / maxVal) * drawH;
+      ctx.lineTo(x, y);
+    }
+
+    ctx.closePath();
+    ctx.fill();
   },
 
   destroy() {

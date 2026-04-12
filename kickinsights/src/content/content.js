@@ -310,12 +310,14 @@
     const kickCount = KI_ViewerCountReader.read();
     const uniqueChatters = chatParser.getUniqueChatterCount(now, windowMs);
     const chatRate = chatParser.getChatRate(now, windowMs);
-    const { estimatedViewers } = KI_EstimationEngine.estimate(uniqueChatters, participationRate);
+    const estResult = KI_EstimationEngine.estimate(uniqueChatters, participationRate);
 
     const snapshot = {
       time: new Date(now).toISOString(),
       kickCount: kickCount || 0,
-      estimatedCount: estimatedViewers,
+      estimatedCount: estResult.estimatedViewers,
+      estimatedLow: estResult.low,
+      estimatedHigh: estResult.high,
       uniqueChatters,
       chatRate,
     };

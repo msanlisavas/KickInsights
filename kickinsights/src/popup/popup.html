@@ -89,7 +89,16 @@
 
     <section id="ki-panel-census" class="ki-panel" style="display:none">
       <div id="ki-census-idle">
-        <p>Ask your viewers to type in chat, then start the census to count unique participants.</p>
+        <div class="ki-census-explainer">
+          <h3 style="margin-bottom:6px; font-size:13px">How Census Works</h3>
+          <ol class="ki-muted" style="padding-left:18px; margin-bottom:8px; line-height:1.5">
+            <li>The <strong style="color:#e0e0e0">streamer asks everyone</strong> to type something in chat (e.g., "type 1")</li>
+            <li>You click <strong style="color:#e0e0e0">Start Census</strong> — the extension counts unique chatters for 60 seconds</li>
+            <li>The result gives a <strong style="color:#e0e0e0">verified floor count</strong> of real viewers</li>
+            <li>Applying it <strong style="color:#e0e0e0">auto-calibrates</strong> the participation rate for this channel</li>
+          </ol>
+          <p class="ki-muted" style="color:#f59e0b; margin-bottom:10px">Without the streamer asking chat to participate, census just counts the same people who were already chatting — the result won't be useful.</p>
+        </div>
         <button id="ki-census-start" class="ki-btn ki-btn-primary">Start Census (60s)</button>
       </div>
       <div id="ki-census-active" style="display:none">
