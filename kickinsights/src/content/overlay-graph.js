@@ -36,8 +36,8 @@ var KI_OverlayGraph = {
     header.className = 'ki-overlay-header';
 
     const title = document.createElement('span');
-    title.textContent = 'KickInsights';
     title.className = 'ki-overlay-title';
+    title.innerHTML = 'KickInsights <span style="color:#555;font-weight:400;font-size:9px">by Ekolsoft</span>';
 
     const controls = document.createElement('div');
     controls.className = 'ki-overlay-controls';
