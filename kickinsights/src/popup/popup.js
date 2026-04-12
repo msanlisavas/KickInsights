@@ -116,6 +116,13 @@
 
       if (!status.active) return;
 
+      // Keep the slider in sync with the actual rate being used
+      if (status.participationRate && !els.rateSlider.matches(':active')) {
+        const pct = status.participationRate * 100;
+        els.rateSlider.value = pct;
+        els.rateValue.textContent = pct.toFixed(1) + '%';
+      }
+
       els.kickCount.textContent = status.kickCount ? KI_Format.compactNumber(status.kickCount) : '--';
       els.estCount.textContent = (status.estimatedLow && status.estimatedHigh)
         ? `${KI_Format.compactNumber(status.estimatedLow)}–${KI_Format.compactNumber(status.estimatedHigh)}`
@@ -164,6 +171,12 @@
       els.censusError.style.display = 'none';
       els.censusResult.style.display = 'none';
       els.censusIdle.style.display = 'block';
+      // Update the slider to reflect the new learned rate
+      if (result.newRate) {
+        const pct = result.newRate * 100;
+        els.rateSlider.value = pct;
+        els.rateValue.textContent = pct.toFixed(1) + '%';
+      }
     } else {
       els.censusError.textContent = result?.error || 'Failed to apply';
       els.censusError.style.display = 'block';
