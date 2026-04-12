@@ -292,7 +292,7 @@
     } else {
       const estStr = `${KI_Format.compactNumber(result.low)}–${KI_Format.compactNumber(result.high)}`;
       KI_OverlayGraph.updateStatus(
-        `Kick: ${kickStr} | Est: ${estStr} | Chatters: ${uniqueChatters} | ${chatRate}/min${censusStatus}`
+        `Kick: ${kickStr} | Est: ${estStr} | Chatters: ${uniqueChatters} | Msgs: ${chatRate}/min${censusStatus}`
       );
     }
   }
