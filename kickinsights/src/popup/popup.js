@@ -47,6 +47,7 @@
     showOverlay: document.getElementById('ki-show-overlay'),
     clearChannel: document.getElementById('ki-clear-channel'),
     clearAll: document.getElementById('ki-clear-all'),
+    storageUsage: document.getElementById('ki-storage-usage'),
     overlayToggleRow: document.getElementById('ki-overlay-toggle-row'),
     toggleOverlay: document.getElementById('ki-toggle-overlay'),
   };
@@ -423,6 +424,21 @@
     els.rateValue.textContent = (settings.participationRate * 100).toFixed(1) + '%';
     els.windowSelect.value = String(settings.rollingWindowMs);
     els.showOverlay.checked = settings.showOverlayGraph;
+
+    // Show storage usage
+    updateStorageUsage();
+  }
+
+  async function updateStorageUsage() {
+    try {
+      const all = await chrome.storage.local.get(null);
+      const bytes = new Blob([JSON.stringify(all)]).size;
+      const kb = (bytes / 1024).toFixed(0);
+      const mb = (bytes / (1024 * 1024)).toFixed(2);
+      els.storageUsage.textContent = bytes < 1024 * 1024 ? `${kb} KB` : `${mb} MB`;
+    } catch (e) {
+      els.storageUsage.textContent = '--';
+    }
   }
 
   els.rateSlider.addEventListener('input', () => {

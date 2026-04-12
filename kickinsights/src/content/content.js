@@ -100,6 +100,9 @@
     if (active) return;
     active = true;
 
+    // Prune old sessions on every activation
+    await KI_Storage.pruneOldSessions(new Date());
+
     // Re-read channel in case of SPA navigation
     channelName = extractChannelName();
     if (!channelName) { active = false; return; }
