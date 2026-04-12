@@ -255,16 +255,44 @@ const KI_OverlayGraph = {
   },
 
   _draw() {
-    if (!this._ctx || this._snapshots.length < 2) return;
+    if (!this._ctx) return;
 
     const ctx = this._ctx;
     const w = this._canvas.width;
     const h = this._canvas.height;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Show helpful message when not enough data yet
+    if (this._snapshots.length < 2) {
+      ctx.fillStyle = '#1a1a1e';
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = '#53fc18';
+      ctx.font = 'bold 13px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('Collecting data...', w / 2, h / 2 - 24);
+
+      ctx.fillStyle = '#888';
+      ctx.font = '11px system-ui';
+      const lines = [
+        'Chat messages are being tracked in real-time.',
+        'The graph will appear after ~4 minutes.',
+        this._snapshots.length === 0
+          ? 'First snapshot in ~2 min.'
+          : '1 snapshot collected. Next one in ~2 min.',
+      ];
+      lines.forEach((line, i) => {
+        ctx.fillText(line, w / 2, h / 2 + i * 18);
+      });
+
+      ctx.textAlign = 'left';
+      return;
+    }
+
     const pad = { top: 18, right: 8, bottom: 4, left: 8 };
     const drawW = w - pad.left - pad.right;
     const drawH = h - pad.top - pad.bottom;
-
-    ctx.clearRect(0, 0, w, h);
 
     const kickCounts = this._snapshots.map(s => s.kickCount);
     const estCounts = this._snapshots.map(s => s.estimatedCount);

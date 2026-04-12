@@ -279,13 +279,22 @@
 
     // Update overlay status
     const kickStr = kickCount ? KI_Format.compactNumber(kickCount) : '?';
-    const estStr = `${KI_Format.compactNumber(result.low)}–${KI_Format.compactNumber(result.high)}`;
+    const elapsed = Math.round((now - sessionStartTime) / 1000);
     const censusStatus = census && census.isActive()
       ? ` | Census: ${census.getUniqueUserCount()} (${Math.ceil(census.getRemainingMs(now) / 1000)}s)`
       : '';
-    KI_OverlayGraph.updateStatus(
-      `Kick: ${kickStr} | Est: ${estStr} | Chatters: ${uniqueChatters} | ${chatRate}/min${censusStatus}`
-    );
+
+    if (uniqueChatters < 5) {
+      // Not enough data yet
+      KI_OverlayGraph.updateStatus(
+        `Kick: ${kickStr} | Warming up... ${uniqueChatters} chatters seen (${elapsed}s)${censusStatus}`
+      );
+    } else {
+      const estStr = `${KI_Format.compactNumber(result.low)}–${KI_Format.compactNumber(result.high)}`;
+      KI_OverlayGraph.updateStatus(
+        `Kick: ${kickStr} | Est: ${estStr} | Chatters: ${uniqueChatters} | ${chatRate}/min${censusStatus}`
+      );
+    }
   }
 
   // --- Snapshots ---
