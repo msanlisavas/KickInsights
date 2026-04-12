@@ -1,12 +1,22 @@
 if (typeof KI_Storage !== 'undefined') { /* already loaded */ } else
 var KI_Storage = {
   async _get(key) {
-    const result = await chrome.storage.local.get(key);
-    return result[key];
+    try {
+      const result = await chrome.storage.local.get(key);
+      return result[key];
+    } catch (e) {
+      if (e.message?.includes('Extension context invalidated')) return undefined;
+      throw e;
+    }
   },
 
   async _set(key, value) {
-    await chrome.storage.local.set({ [key]: value });
+    try {
+      await chrome.storage.local.set({ [key]: value });
+    } catch (e) {
+      if (e.message?.includes('Extension context invalidated')) return;
+      throw e;
+    }
   },
 
   async getSessions() {
