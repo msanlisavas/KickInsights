@@ -49,7 +49,41 @@
       else startCensus();
     });
 
+    // Detect SPA navigation (Kick doesn't reload the page between channels)
+    let lastUrl = window.location.href;
+    const urlObserver = new MutationObserver(() => {
+      if (window.location.href !== lastUrl) {
+        const oldUrl = lastUrl;
+        lastUrl = window.location.href;
+        onUrlChange(oldUrl, lastUrl);
+      }
+    });
+    urlObserver.observe(document.body, { childList: true, subtree: true });
+
+    // Also listen for popstate (back/forward)
+    window.addEventListener('popstate', () => {
+      if (window.location.href !== lastUrl) {
+        const oldUrl = lastUrl;
+        lastUrl = window.location.href;
+        onUrlChange(oldUrl, lastUrl);
+      }
+    });
+
     console.log(`[KickInsights] Ready for channel: ${channelName} (inactive — click Start to begin)`);
+  }
+
+  async function onUrlChange(oldUrl, newUrl) {
+    const newChannel = extractChannelName();
+    if (newChannel === channelName) return; // Same channel, ignore
+
+    console.log(`[KickInsights] Channel changed: ${channelName} → ${newChannel}`);
+
+    // Auto-deactivate if tracking was active
+    if (active) {
+      await deactivate();
+    }
+
+    channelName = newChannel;
   }
 
   // --- Activation / Deactivation ---
