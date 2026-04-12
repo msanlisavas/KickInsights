@@ -107,9 +107,11 @@
     // Load per-channel calibration
     const profile = await KI_Storage.getCalibrationProfile(channelName);
     if (profile.censusHistory.length > 0) {
-      participationRate = KI_Calibration.computeWeightedRate(
+      const learnedRate = KI_Calibration.computeWeightedRate(
         profile.censusHistory, settings.participationRate
       );
+      // Sanity check: reject absurd rates from old buggy census data
+      participationRate = (learnedRate > 0.20) ? settings.participationRate : learnedRate;
     } else {
       participationRate = settings.participationRate;
     }

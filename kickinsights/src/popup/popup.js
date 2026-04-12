@@ -399,8 +399,8 @@
   async function loadSettings() {
     const result = await chrome.storage.local.get('ki_settings');
     const settings = result.ki_settings || {
-      participationRate: 0.05,
-      rollingWindowMs: 300000,
+      participationRate: KI_CONSTANTS.DEFAULT_PARTICIPATION_RATE,
+      rollingWindowMs: KI_CONSTANTS.ROLLING_WINDOW_MS,
       showOverlayGraph: true,
     };
 
