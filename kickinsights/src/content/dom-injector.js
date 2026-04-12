@@ -2,16 +2,17 @@ const KI_DomInjector = {
   _injectedEl: null,
 
   updateViewerCount(estimatedCount, confidence) {
-    const kickCountEl = KI_ViewerCountReader.getElement();
-    if (!kickCountEl) return;
+    const containerEl = KI_ViewerCountReader.getElement();
+    if (!containerEl) return;
 
     if (!this._injectedEl) {
       this._injectedEl = document.createElement('span');
       this._injectedEl.id = 'ki-estimated-count';
       this._injectedEl.className = 'ki-estimate';
-      kickCountEl.parentElement.insertBefore(
+      // Insert after the viewer count container (which includes count + label)
+      containerEl.parentElement.insertBefore(
         this._injectedEl,
-        kickCountEl.nextSibling
+        containerEl.nextSibling
       );
     }
 

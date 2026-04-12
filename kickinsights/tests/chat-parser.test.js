@@ -75,9 +75,17 @@ describe('KI_ChatParser', () => {
   });
 
   describe('extractUsernameFromNode', () => {
-    test('extracts username from a DOM node with chat-entry username element', () => {
+    test('extracts username from a button element (Kick format)', () => {
       const node = document.createElement('div');
-      node.innerHTML = '<span class="chat-entry-username" data-chat-entry-user-id="123">TestUser</span><span class="chat-entry-message">hello</span>';
+      node.setAttribute('data-index', '42');
+      node.innerHTML = '<div class="group"><button>wexcoon</button><span>:</span><span>hello</span></div>';
+      const username = KI_ChatParser.extractUsernameFromNode(node);
+      expect(username).toBe('wexcoon');
+    });
+
+    test('extracts username from chat-entry-username fallback', () => {
+      const node = document.createElement('div');
+      node.innerHTML = '<span class="chat-entry-username" data-chat-entry-user-id="123">TestUser</span><span>hello</span>';
       const username = KI_ChatParser.extractUsernameFromNode(node);
       expect(username).toBe('TestUser');
     });

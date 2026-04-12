@@ -40,16 +40,37 @@ class KI_ChatParser {
   }
 
   static extractUsernameFromNode(node) {
+    // Kick uses virtualized chat with [data-index] divs.
+    // If the node itself doesn't have data-index, check children.
+    const msgNode = node.hasAttribute && node.hasAttribute('data-index')
+      ? node
+      : node.querySelector && node.querySelector('[data-index]');
+
+    const target = msgNode || node;
+
+    // Kick renders usernames as <button> elements inside chat messages
+    const buttonEl = target.querySelector && target.querySelector('button');
+    if (buttonEl) {
+      const text = buttonEl.textContent.trim();
+      if (text.length > 0 && text.length < 40) {
+        return text;
+      }
+    }
+
+    // Fallback: try common username selectors
     const usernameEl =
-      node.querySelector('[class*="chat-entry-username"]') ||
-      node.querySelector('[data-chat-entry-user-id]') ||
-      node.querySelector('[class*="username"]');
+      target.querySelector && (
+        target.querySelector('[class*="chat-entry-username"]') ||
+        target.querySelector('[data-chat-entry-user-id]') ||
+        target.querySelector('[class*="username"]')
+      );
 
     if (usernameEl) {
       return usernameEl.textContent.trim() || null;
     }
 
-    const linkEl = node.querySelector('a');
+    // Fallback: link elements
+    const linkEl = target.querySelector && target.querySelector('a');
     if (linkEl && linkEl.textContent.trim().length > 0 && linkEl.textContent.trim().length < 40) {
       return linkEl.textContent.trim();
     }
