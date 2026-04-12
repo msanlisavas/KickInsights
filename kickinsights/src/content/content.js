@@ -88,6 +88,9 @@
       await deactivate();
     }
 
+    // Clear cached DOM references (stale after SPA navigation)
+    KI_ViewerCountReader._containerEl = null;
+
     channelName = newChannel;
   }
 
@@ -475,6 +478,7 @@
           sendResponse({
             active: false,
             channelName: channelName || extractChannelName(),
+            kickCount: KI_ViewerCountReader.read(),
           });
           return true;
         }

@@ -118,7 +118,9 @@
       els.toggleActive.classList.add('ki-btn-primary');
       els.activeLabel.textContent = 'Inactive';
       els.activeLabel.style.color = '#888';
-      els.statusSection.style.display = 'none';
+      els.statusSection.style.display = '';
+      els.estCount.textContent = '--';
+      els.confidence.textContent = '--';
       els.overlayToggleRow.style.display = 'none';
       document.querySelector('.ki-tabs').style.display = 'none';
       // Hide all panels
@@ -134,6 +136,9 @@
 
       els.channelName.textContent = status.channelName || '--';
       updateActivationUI(status.active);
+
+      // Always show Kick count, even when inactive
+      els.kickCount.textContent = status.kickCount ? KI_Format.compactNumber(status.kickCount) : '--';
 
       if (!status.active) return;
 
