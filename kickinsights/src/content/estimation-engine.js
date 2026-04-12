@@ -1,10 +1,16 @@
 const KI_EstimationEngine = {
   estimate(uniqueChatters, participationRate) {
     if (uniqueChatters === 0 || participationRate <= 0) {
-      return { estimatedViewers: 0, confidence: 'low' };
+      return { estimatedViewers: 0, low: 0, high: 0, confidence: 'low' };
     }
 
     const estimatedViewers = Math.round(uniqueChatters / participationRate);
+
+    // Range: optimistic (lower rate = more viewers) and pessimistic (higher rate = fewer viewers)
+    const optimisticRate = participationRate * KI_CONSTANTS.OPTIMISTIC_RATE_MULTIPLIER;
+    const pessimisticRate = participationRate * KI_CONSTANTS.PESSIMISTIC_RATE_MULTIPLIER;
+    const high = Math.round(uniqueChatters / optimisticRate);
+    const low = Math.round(uniqueChatters / pessimisticRate);
 
     let confidence;
     if (uniqueChatters < 20) {
@@ -15,7 +21,7 @@ const KI_EstimationEngine = {
       confidence = 'high';
     }
 
-    return { estimatedViewers, confidence };
+    return { estimatedViewers, low, high, confidence };
   },
 };
 

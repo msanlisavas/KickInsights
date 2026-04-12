@@ -1,7 +1,7 @@
 const KI_DomInjector = {
   _injectedEl: null,
 
-  updateViewerCount(estimatedCount, confidence) {
+  updateViewerCount(low, high, confidence) {
     const containerEl = KI_ViewerCountReader.getElement();
     if (!containerEl) return;
 
@@ -9,19 +9,19 @@ const KI_DomInjector = {
       this._injectedEl = document.createElement('span');
       this._injectedEl.id = 'ki-estimated-count';
       this._injectedEl.className = 'ki-estimate';
-      // Insert after the viewer count container (which includes count + label)
       containerEl.parentElement.insertBefore(
         this._injectedEl,
         containerEl.nextSibling
       );
     }
 
-    const formatted = KI_Format.compactNumber(estimatedCount);
+    const lowStr = KI_Format.compactNumber(low);
+    const highStr = KI_Format.compactNumber(high);
     const confidenceClass = `ki-confidence-${confidence}`;
 
     this._injectedEl.className = `ki-estimate ${confidenceClass}`;
-    this._injectedEl.textContent = ` (est. ~${formatted})`;
-    this._injectedEl.title = `KickInsights estimate (${confidence} confidence)`;
+    this._injectedEl.textContent = ` (est. ${lowStr}–${highStr})`;
+    this._injectedEl.title = `KickInsights range estimate (${confidence} confidence)`;
   },
 
   remove() {

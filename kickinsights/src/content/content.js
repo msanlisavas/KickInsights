@@ -50,6 +50,27 @@
     // Fallback: DOM observation for any messages the WS interceptor misses
     observeChat();
     KI_OverlayGraph.init();
+
+    // Census quick-trigger from overlay button or keyboard shortcut
+    window.addEventListener('ki-census-toggle', () => {
+      if (census.isActive()) {
+        finishCensus();
+      } else {
+        startCensus();
+      }
+    });
+
+    // Keyboard shortcut: Ctrl+Shift+C for census
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+        e.preventDefault();
+        if (census.isActive()) {
+          finishCensus();
+        } else {
+          startCensus();
+        }
+      }
+    });
     updateTimer = setInterval(updateEstimate, 5000);
     snapshotTimer = setInterval(takeSnapshot, KI_CONSTANTS.SNAPSHOT_INTERVAL_MS);
     chrome.runtime.onMessage.addListener(handleMessage);
@@ -165,12 +186,22 @@
     const now = Date.now();
     const windowMs = settings ? settings.rollingWindowMs : KI_CONSTANTS.ROLLING_WINDOW_MS;
     const uniqueChatters = chatParser.getUniqueChatterCount(now, windowMs);
+    const chatRate = chatParser.getChatRate(now, windowMs);
+    const kickCount = KI_ViewerCountReader.read();
 
-    const { estimatedViewers, confidence } = KI_EstimationEngine.estimate(
-      uniqueChatters, participationRate
+    const result = KI_EstimationEngine.estimate(uniqueChatters, participationRate);
+
+    KI_DomInjector.updateViewerCount(result.low, result.high, result.confidence);
+
+    // Update overlay status line
+    const kickStr = kickCount ? KI_Format.compactNumber(kickCount) : '?';
+    const estStr = `${KI_Format.compactNumber(result.low)}–${KI_Format.compactNumber(result.high)}`;
+    const censusStatus = census.isActive()
+      ? ` | Census: ${census.getUniqueUserCount()} users (${Math.ceil(census.getRemainingMs(now) / 1000)}s)`
+      : '';
+    KI_OverlayGraph.updateStatus(
+      `Kick: ${kickStr} | Est: ${estStr} | Chatters: ${uniqueChatters} | ${chatRate} msg/min${censusStatus}`
     );
-
-    KI_DomInjector.updateViewerCount(estimatedViewers, confidence);
   }
 
   async function takeSnapshot() {
@@ -268,12 +299,14 @@
         const now = Date.now();
         const windowMs = settings ? settings.rollingWindowMs : KI_CONSTANTS.ROLLING_WINDOW_MS;
         const uniqueChatters = chatParser.getUniqueChatterCount(now, windowMs);
-        const { estimatedViewers, confidence } = KI_EstimationEngine.estimate(uniqueChatters, participationRate);
+        const result = KI_EstimationEngine.estimate(uniqueChatters, participationRate);
         sendResponse({
           channelName,
           kickCount: KI_ViewerCountReader.read(),
-          estimatedCount: estimatedViewers,
-          confidence,
+          estimatedCount: result.estimatedViewers,
+          estimatedLow: result.low,
+          estimatedHigh: result.high,
+          confidence: result.confidence,
           uniqueChatters,
           chatRate: chatParser.getChatRate(now, windowMs),
           participationRate,

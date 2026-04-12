@@ -71,7 +71,9 @@
 
       els.channelName.textContent = status.channelName || '--';
       els.kickCount.textContent = status.kickCount ? KI_Format.compactNumber(status.kickCount) : '--';
-      els.estCount.textContent = status.estimatedCount ? KI_Format.compactNumber(status.estimatedCount) : '--';
+      els.estCount.textContent = (status.estimatedLow && status.estimatedHigh)
+        ? `${KI_Format.compactNumber(status.estimatedLow)}–${KI_Format.compactNumber(status.estimatedHigh)}`
+        : '--';
       els.confidence.textContent = status.confidence || '--';
 
       if (status.censusActive) {

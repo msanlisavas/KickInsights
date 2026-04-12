@@ -58,7 +58,7 @@ describe('KI_Storage', () => {
   describe('getCalibrationProfile', () => {
     test('returns default profile if none exists', async () => {
       const profile = await KI_Storage.getCalibrationProfile('newChannel');
-      expect(profile.learnedParticipationRate).toBe(0.05);
+      expect(profile.learnedParticipationRate).toBe(0.03);
       expect(profile.censusHistory).toEqual([]);
     });
 
@@ -78,7 +78,7 @@ describe('KI_Storage', () => {
   describe('getSettings', () => {
     test('returns defaults when no settings saved', async () => {
       const settings = await KI_Storage.getSettings();
-      expect(settings.participationRate).toBe(0.05);
+      expect(settings.participationRate).toBe(0.03);
       expect(settings.rollingWindowMs).toBe(300000);
     });
   });
