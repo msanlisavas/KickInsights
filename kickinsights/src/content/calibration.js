@@ -1,4 +1,5 @@
-const KI_Calibration = {
+if (typeof KI_Calibration !== 'undefined') { /* already loaded */ } else
+var KI_Calibration = {
   computeWeightedRate(censusHistory, defaultRate) {
     if (censusHistory.length === 0) return defaultRate;
     if (censusHistory.length === 1) return censusHistory[0].derivedRate;

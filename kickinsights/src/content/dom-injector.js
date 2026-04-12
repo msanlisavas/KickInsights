@@ -1,4 +1,5 @@
-const KI_DomInjector = {
+if (typeof KI_DomInjector !== 'undefined') { /* already loaded */ } else
+var KI_DomInjector = {
   _injectedEl: null,
 
   updateViewerCount(low, high, confidence) {

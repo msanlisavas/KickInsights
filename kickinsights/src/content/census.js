@@ -1,4 +1,5 @@
-class KI_Census {
+if (typeof KI_Census !== 'undefined') { /* already loaded */ } else
+var KI_Census = class KI_Census {
   constructor(durationMs) {
     this._durationMs = durationMs;
     this._active = false;

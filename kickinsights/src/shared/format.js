@@ -1,4 +1,5 @@
-const KI_Format = {
+if (typeof KI_Format !== 'undefined') { /* already loaded */ } else
+var KI_Format = {
   compactNumber(num) {
     if (num === 0) return '0';
     if (num < 1000) return String(num);

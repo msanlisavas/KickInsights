@@ -1,4 +1,5 @@
-const KI_EstimationEngine = {
+if (typeof KI_EstimationEngine !== 'undefined') { /* already loaded */ } else
+var KI_EstimationEngine = {
   estimate(uniqueChatters, participationRate) {
     if (uniqueChatters === 0 || participationRate <= 0) {
       return { estimatedViewers: 0, low: 0, high: 0, confidence: 'low' };

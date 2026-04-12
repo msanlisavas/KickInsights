@@ -1,4 +1,5 @@
-class KI_ChatParser {
+if (typeof KI_ChatParser !== 'undefined') { /* already loaded */ } else
+var KI_ChatParser = class KI_ChatParser {
   constructor() {
     this._events = [];
   }

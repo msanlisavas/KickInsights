@@ -1,4 +1,5 @@
-const KI_OverlayGraph = {
+if (typeof KI_OverlayGraph !== 'undefined') { /* already loaded */ } else
+var KI_OverlayGraph = {
   _container: null,
   _canvas: null,
   _ctx: null,

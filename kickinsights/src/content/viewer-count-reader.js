@@ -1,4 +1,5 @@
-const KI_ViewerCountReader = {
+if (typeof KI_ViewerCountReader !== 'undefined') { /* already loaded */ } else
+var KI_ViewerCountReader = {
   _containerEl: null,
 
   /**

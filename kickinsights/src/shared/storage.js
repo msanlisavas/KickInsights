@@ -1,4 +1,5 @@
-const KI_Storage = {
+if (typeof KI_Storage !== 'undefined') { /* already loaded */ } else
+var KI_Storage = {
   async _get(key) {
     const result = await chrome.storage.local.get(key);
     return result[key];
