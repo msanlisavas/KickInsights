@@ -39,6 +39,15 @@
       summary: { avgKickCount: 0, avgEstimatedCount: 0, peakEstimated: 0, totalUniqueChatters: 0 },
     });
 
+    // Primary: listen for WebSocket chat messages intercepted by the
+    // early injector (ws-interceptor-early.js, runs in MAIN world)
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'KI_CHAT_MESSAGE') {
+        recordChatUser(event.data.username);
+      }
+    });
+
+    // Fallback: DOM observation for any messages the WS interceptor misses
     observeChat();
     KI_OverlayGraph.init();
     updateTimer = setInterval(updateEstimate, 5000);

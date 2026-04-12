@@ -19,6 +19,12 @@
   "content_scripts": [
     {
       "matches": ["https://kick.com/*", "https://*.kick.com/*"],
+      "js": ["src/content/ws-interceptor-early.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://kick.com/*", "https://*.kick.com/*"],
       "js": [
         "src/shared/constants.js",
         "src/shared/format.js",
