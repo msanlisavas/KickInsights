@@ -460,6 +460,7 @@
           totalMessagesWS: _totalMessagesWS,
           totalMessagesDom: _totalMessagesDom,
           totalEvents: chatParser ? chatParser.getEvents().length : 0,
+          totalMessages: _totalMessagesWS + _totalMessagesDom,
         });
         return true;
       }

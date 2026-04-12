@@ -167,7 +167,7 @@
       els.dashPRate.textContent = status.participationRate ? `${(status.participationRate * 100).toFixed(1)}%` : '--';
       els.dashWS.textContent = status.totalMessagesWS != null ? status.totalMessagesWS : '--';
       els.dashDom.textContent = status.totalMessagesDom != null ? status.totalMessagesDom : '--';
-      els.dashWindow.textContent = status.totalEvents != null ? status.totalEvents : '--';
+      els.dashWindow.textContent = (status.totalEvents != null) ? String(status.totalEvents) : '--';
 
       // Draw dashboard chart
       loadDashboardChart();
