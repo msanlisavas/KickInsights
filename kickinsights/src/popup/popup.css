@@ -151,6 +151,53 @@ body {
   border-color: #555;
 }
 
+/* Dashboard */
+.ki-dashboard-status {
+  padding: 6px 8px;
+  font-size: 11px;
+  color: #aaa;
+  background: #1a1a1e;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ki-dashboard-stats {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ki-dash-stat {
+  flex: 1;
+  text-align: center;
+  padding: 6px;
+  background: #1a1a1e;
+  border-radius: 4px;
+}
+
+.ki-dash-label {
+  display: block;
+  font-size: 9px;
+  color: #666;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.ki-dash-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #e0e0e0;
+}
+
+#ki-dash-chart {
+  width: 100%;
+  background: #1a1a1e;
+  border-radius: 6px;
+}
+
 .ki-census-countdown {
   text-align: center;
   font-size: 24px;

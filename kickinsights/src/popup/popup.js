@@ -24,7 +24,11 @@
     calCount: document.getElementById('ki-cal-count'),
     calTrend: document.getElementById('ki-cal-trend'),
     calHistoryList: document.getElementById('ki-cal-history-list'),
-    popupChart: document.getElementById('ki-popup-chart'),
+    dashStatus: document.getElementById('ki-dash-status'),
+    dashChatters: document.getElementById('ki-dash-chatters'),
+    dashRate: document.getElementById('ki-dash-rate'),
+    dashPRate: document.getElementById('ki-dash-prate'),
+    dashChart: document.getElementById('ki-dash-chart'),
     historyList: document.getElementById('ki-history-list'),
     historyEmpty: document.getElementById('ki-history-empty'),
     exportCsv: document.getElementById('ki-export-csv'),
@@ -57,7 +61,7 @@
 
       if (tab.dataset.tab === 'history') loadHistory();
       if (tab.dataset.tab === 'calibration') loadCalibration();
-      if (tab.dataset.tab === 'graph') loadGraph();
+      if (tab.dataset.tab === 'dashboard') loadDashboardChart();
     });
   });
 
@@ -142,10 +146,25 @@
       els.toggleOverlay.textContent = status.overlayVisible ? 'Hide Overlay' : 'Show Overlay';
 
       els.kickCount.textContent = status.kickCount ? KI_Format.compactNumber(status.kickCount) : '--';
-      els.estCount.textContent = (status.estimatedLow && status.estimatedHigh)
+      const estRange = (status.estimatedLow && status.estimatedHigh)
         ? `${KI_Format.compactNumber(status.estimatedLow)}–${KI_Format.compactNumber(status.estimatedHigh)}`
         : '--';
+      els.estCount.textContent = estRange;
       els.confidence.textContent = status.confidence || '--';
+
+      // Update dashboard
+      const kickStr = status.kickCount ? KI_Format.compactNumber(status.kickCount) : '?';
+      if (status.uniqueChatters < 5) {
+        els.dashStatus.textContent = `Kick: ${kickStr} | Warming up... ${status.uniqueChatters} chatters seen`;
+      } else {
+        els.dashStatus.textContent = `Kick: ${kickStr} | Est: ${estRange} | Msgs: ${status.chatRate}/min`;
+      }
+      els.dashChatters.textContent = status.uniqueChatters || '0';
+      els.dashRate.textContent = status.chatRate ? `${status.chatRate}/min` : '0/min';
+      els.dashPRate.textContent = status.participationRate ? `${(status.participationRate * 100).toFixed(1)}%` : '--';
+
+      // Draw dashboard chart
+      loadDashboardChart();
 
       // Only update census sub-panels if census tab is currently visible
       if (els.censusIdle.parentElement.style.display !== 'none') {
@@ -279,12 +298,12 @@
     return 'stable';
   }
 
-  // Graph
-  async function loadGraph() {
+  // Dashboard chart
+  async function loadDashboardChart() {
     const result = await chrome.storage.local.get('ki_active_session');
     const session = result.ki_active_session;
     if (!session || !session.snapshots || session.snapshots.length < 2) return;
-    KI_ChartRenderer.draw(els.popupChart, session.snapshots);
+    KI_ChartRenderer.draw(els.dashChart, session.snapshots);
   }
 
   // History

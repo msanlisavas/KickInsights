@@ -45,15 +45,35 @@
     </section>
 
     <nav class="ki-tabs">
-      <button class="ki-tab ki-tab-active" data-tab="census">Census</button>
+      <button class="ki-tab ki-tab-active" data-tab="dashboard">Dashboard</button>
+      <button class="ki-tab" data-tab="census">Census</button>
       <button class="ki-tab" data-tab="calibration">Calibration</button>
-      <button class="ki-tab" data-tab="graph">Graph</button>
       <button class="ki-tab" data-tab="history">History</button>
       <button class="ki-tab" data-tab="export">Export</button>
       <button class="ki-tab" data-tab="settings">Settings</button>
     </nav>
 
-    <section id="ki-panel-census" class="ki-panel">
+    <!-- Dashboard panel — live view like the overlay -->
+    <section id="ki-panel-dashboard" class="ki-panel">
+      <div class="ki-dashboard-status" id="ki-dash-status">Waiting for data...</div>
+      <div class="ki-dashboard-stats">
+        <div class="ki-dash-stat">
+          <span class="ki-dash-label">Unique Chatters</span>
+          <span class="ki-dash-value" id="ki-dash-chatters">--</span>
+        </div>
+        <div class="ki-dash-stat">
+          <span class="ki-dash-label">Chat Rate</span>
+          <span class="ki-dash-value" id="ki-dash-rate">--</span>
+        </div>
+        <div class="ki-dash-stat">
+          <span class="ki-dash-label">Participation Rate</span>
+          <span class="ki-dash-value" id="ki-dash-prate">--</span>
+        </div>
+      </div>
+      <canvas id="ki-dash-chart" width="376" height="180"></canvas>
+    </section>
+
+    <section id="ki-panel-census" class="ki-panel" style="display:none">
       <div id="ki-census-idle">
         <p>Ask your viewers to type in chat, then start the census to count unique participants.</p>
         <button id="ki-census-start" class="ki-btn ki-btn-primary">Start Census (60s)</button>
@@ -97,10 +117,6 @@
         </div>
       </div>
       <div id="ki-cal-history-list" class="ki-list"></div>
-    </section>
-
-    <section id="ki-panel-graph" class="ki-panel" style="display:none">
-      <canvas id="ki-popup-chart" width="360" height="200"></canvas>
     </section>
 
     <section id="ki-panel-history" class="ki-panel" style="display:none">
