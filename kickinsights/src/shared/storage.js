@@ -1,7 +1,3 @@
-const { KI_CONSTANTS } = (typeof module !== 'undefined' && typeof require !== 'undefined')
-  ? require('./constants.js')
-  : { KI_CONSTANTS };
-
 const KI_Storage = {
   async _get(key) {
     const result = await chrome.storage.local.get(key);

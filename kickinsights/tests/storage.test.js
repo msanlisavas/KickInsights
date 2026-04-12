@@ -25,6 +25,9 @@ global.chrome = {
   },
 };
 
+// Make KI_CONSTANTS available as a global (mimics browser content script loading order)
+global.KI_CONSTANTS = require('../src/shared/constants.js').KI_CONSTANTS;
+
 const { KI_Storage } = require('../src/shared/storage.js');
 
 beforeEach(() => {
