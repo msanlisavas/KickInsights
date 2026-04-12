@@ -13,7 +13,15 @@
       <span id="ki-channel-name" class="ki-channel"></span>
     </header>
 
-    <section class="ki-status">
+    <!-- Activation toggle -->
+    <section class="ki-activation">
+      <div class="ki-activation-row">
+        <span id="ki-active-label">Inactive</span>
+        <button id="ki-toggle-active" class="ki-btn ki-btn-primary">Start Tracking</button>
+      </div>
+    </section>
+
+    <section class="ki-status" id="ki-status-section" style="display:none">
       <div class="ki-stat">
         <span class="ki-stat-label">Kick Count</span>
         <span id="ki-kick-count" class="ki-stat-value">--</span>

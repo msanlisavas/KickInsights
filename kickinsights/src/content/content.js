@@ -1,22 +1,73 @@
 (() => {
+  // State
+  let active = false;
   let chatParser = null;
   let census = null;
   let channelName = null;
   let sessionStartTime = null;
   let snapshotTimer = null;
   let updateTimer = null;
+  let scanTimer = null;
+  let pruneTimer = null;
   let participationRate = KI_CONSTANTS.DEFAULT_PARTICIPATION_RATE;
   let settings = null;
   let observer = null;
+  let _seenIndices = new Set();
 
-  async function init() {
+  // --- Bootstrap: always run, but don't start tracking ---
+
+  async function bootstrap() {
     channelName = extractChannelName();
     if (!channelName) return;
 
     settings = await KI_Storage.getSettings();
+
+    // Always listen for messages from popup (even when inactive)
+    chrome.runtime.onMessage.addListener(handleMessage);
+
+    // Listen for WS chat messages (buffered until activated)
+    window.addEventListener('message', (event) => {
+      if (active && event.data && event.data.type === 'KI_CHAT_MESSAGE') {
+        recordChatUser(event.data.username);
+      }
+    });
+
+    // Census keyboard shortcut (only works when active)
+    document.addEventListener('keydown', (e) => {
+      if (!active) return;
+      if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+        e.preventDefault();
+        if (census.isActive()) finishCensus();
+        else startCensus();
+      }
+    });
+
+    // Census quick-trigger from overlay
+    window.addEventListener('ki-census-toggle', () => {
+      if (!active) return;
+      if (census.isActive()) finishCensus();
+      else startCensus();
+    });
+
+    console.log(`[KickInsights] Ready for channel: ${channelName} (inactive — click Start to begin)`);
+  }
+
+  // --- Activation / Deactivation ---
+
+  async function activate() {
+    if (active) return;
+    active = true;
+
+    // Re-read channel in case of SPA navigation
+    channelName = extractChannelName();
+    if (!channelName) { active = false; return; }
+
+    settings = await KI_Storage.getSettings();
     chatParser = new KI_ChatParser();
     census = new KI_Census(KI_CONSTANTS.CENSUS_DURATION_MS);
+    _seenIndices = new Set();
 
+    // Load per-channel calibration
     const profile = await KI_Storage.getCalibrationProfile(channelName);
     if (profile.censusHistory.length > 0) {
       participationRate = KI_Calibration.computeWeightedRate(
@@ -39,48 +90,55 @@
       summary: { avgKickCount: 0, avgEstimatedCount: 0, peakEstimated: 0, totalUniqueChatters: 0 },
     });
 
-    // Primary: listen for WebSocket chat messages intercepted by the
-    // early injector (ws-interceptor-early.js, runs in MAIN world)
-    window.addEventListener('message', (event) => {
-      if (event.data && event.data.type === 'KI_CHAT_MESSAGE') {
-        recordChatUser(event.data.username);
-      }
-    });
-
-    // Fallback: DOM observation for any messages the WS interceptor misses
+    // Start observers and timers
     observeChat();
     KI_OverlayGraph.init();
-
-    // Census quick-trigger from overlay button or keyboard shortcut
-    window.addEventListener('ki-census-toggle', () => {
-      if (census.isActive()) {
-        finishCensus();
-      } else {
-        startCensus();
-      }
-    });
-
-    // Keyboard shortcut: Ctrl+Shift+C for census
-    document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'C') {
-        e.preventDefault();
-        if (census.isActive()) {
-          finishCensus();
-        } else {
-          startCensus();
-        }
-      }
-    });
+    KI_OverlayGraph.show();
     updateTimer = setInterval(updateEstimate, 5000);
     snapshotTimer = setInterval(takeSnapshot, KI_CONSTANTS.SNAPSHOT_INTERVAL_MS);
-    chrome.runtime.onMessage.addListener(handleMessage);
-
-    setInterval(() => {
+    pruneTimer = setInterval(() => {
       chatParser.pruneOldEvents(Date.now(), settings.rollingWindowMs * 2);
     }, 60000);
 
-    console.log(`[KickInsights] Initialized for channel: ${channelName}`);
+    console.log(`[KickInsights] Activated for channel: ${channelName}`);
   }
+
+  async function deactivate() {
+    if (!active) return;
+    active = false;
+
+    // Stop timers
+    if (updateTimer) { clearInterval(updateTimer); updateTimer = null; }
+    if (snapshotTimer) { clearInterval(snapshotTimer); snapshotTimer = null; }
+    if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
+    if (pruneTimer) { clearInterval(pruneTimer); pruneTimer = null; }
+
+    // Disconnect observer
+    if (observer) { observer.disconnect(); observer = null; }
+
+    // Finalize and save session
+    const session = await KI_Storage.getActiveSession();
+    if (session && sessionStartTime) {
+      session.endTime = new Date().toISOString();
+      session.duration = Math.round((Date.now() - sessionStartTime) / 1000);
+      await KI_Storage.saveSession(session);
+      await KI_Storage.clearActiveSession();
+    }
+
+    // Clean up UI
+    KI_DomInjector.remove();
+    KI_OverlayGraph.hide();
+
+    // Reset state
+    chatParser = null;
+    census = null;
+    sessionStartTime = null;
+    _seenIndices = new Set();
+
+    console.log(`[KickInsights] Deactivated for channel: ${channelName}`);
+  }
+
+  // --- Channel detection ---
 
   function extractChannelName() {
     const match = window.location.pathname.match(/^\/([^\/]+)/);
@@ -90,18 +148,17 @@
     return null;
   }
 
-  // Track which data-index values we've already processed
-  let _seenIndices = new Set();
+  // --- Chat observation ---
 
   function observeChat() {
     const chatContainer = document.querySelector(KI_CONSTANTS.SELECTORS.CHAT_CONTAINER);
     if (!chatContainer) {
-      setTimeout(observeChat, 2000);
+      if (active) setTimeout(observeChat, 2000);
       return;
     }
 
-    // MutationObserver for real-time catching of newly added nodes
     observer = new MutationObserver((mutations) => {
+      if (!active) return;
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
           if (node.nodeType !== Node.ELEMENT_NODE) continue;
@@ -112,16 +169,15 @@
 
     observer.observe(chatContainer, { childList: true, subtree: true });
 
-    // Periodic scan to catch messages missed by MutationObserver.
-    // Kick's virtualized chat recycles DOM nodes, so many messages
-    // are content updates rather than new node additions.
-    setInterval(() => scanVisibleMessages(chatContainer), 2000);
+    // Periodic scan fallback for virtualized chat
+    scanTimer = setInterval(() => {
+      if (active) scanVisibleMessages(chatContainer);
+    }, 2000);
 
     console.log('[KickInsights] Chat observer started');
   }
 
   function processNewChatNode(node) {
-    // Check if this node (or its children) contain data-index messages
     const msgNodes = [];
     if (node.hasAttribute && node.hasAttribute('data-index')) {
       msgNodes.push(node);
@@ -134,19 +190,13 @@
       const idx = msgNode.getAttribute('data-index');
       if (_seenIndices.has(idx)) continue;
       _seenIndices.add(idx);
-
       const username = KI_ChatParser.extractUsernameFromNode(msgNode);
-      if (username) {
-        recordChatUser(username);
-      }
+      if (username) recordChatUser(username);
     }
 
-    // Fallback: try extracting directly from the node if no data-index found
     if (msgNodes.length === 0) {
       const username = KI_ChatParser.extractUsernameFromNode(node);
-      if (username) {
-        recordChatUser(username);
-      }
+      if (username) recordChatUser(username);
     }
   }
 
@@ -156,14 +206,10 @@
       const idx = msgNode.getAttribute('data-index');
       if (_seenIndices.has(idx)) continue;
       _seenIndices.add(idx);
-
       const username = KI_ChatParser.extractUsernameFromNode(msgNode);
-      if (username) {
-        recordChatUser(username);
-      }
+      if (username) recordChatUser(username);
     }
 
-    // Keep the seen set from growing unbounded
     if (_seenIndices.size > 5000) {
       const arr = [..._seenIndices];
       _seenIndices = new Set(arr.slice(arr.length - 2000));
@@ -171,10 +217,11 @@
   }
 
   function recordChatUser(username) {
+    if (!active || !chatParser) return;
     const now = Date.now();
     chatParser.processMessage(username, now);
 
-    if (census.isActive()) {
+    if (census && census.isActive()) {
       census.recordUser(username, now);
       if (census.getRemainingMs(now) === 0) {
         finishCensus();
@@ -182,7 +229,10 @@
     }
   }
 
+  // --- Estimation ---
+
   function updateEstimate() {
+    if (!active || !chatParser) return;
     const now = Date.now();
     const windowMs = settings ? settings.rollingWindowMs : KI_CONSTANTS.ROLLING_WINDOW_MS;
     const uniqueChatters = chatParser.getUniqueChatterCount(now, windowMs);
@@ -193,18 +243,21 @@
 
     KI_DomInjector.updateViewerCount(result.low, result.high, result.confidence);
 
-    // Update overlay status line
+    // Update overlay status
     const kickStr = kickCount ? KI_Format.compactNumber(kickCount) : '?';
     const estStr = `${KI_Format.compactNumber(result.low)}–${KI_Format.compactNumber(result.high)}`;
-    const censusStatus = census.isActive()
-      ? ` | Census: ${census.getUniqueUserCount()} users (${Math.ceil(census.getRemainingMs(now) / 1000)}s)`
+    const censusStatus = census && census.isActive()
+      ? ` | Census: ${census.getUniqueUserCount()} (${Math.ceil(census.getRemainingMs(now) / 1000)}s)`
       : '';
     KI_OverlayGraph.updateStatus(
-      `Kick: ${kickStr} | Est: ${estStr} | Chatters: ${uniqueChatters} | ${chatRate} msg/min${censusStatus}`
+      `Kick: ${kickStr} | Est: ${estStr} | Chatters: ${uniqueChatters} | ${chatRate}/min${censusStatus}`
     );
   }
 
+  // --- Snapshots ---
+
   async function takeSnapshot() {
+    if (!active || !chatParser) return;
     const now = Date.now();
     const windowMs = settings ? settings.rollingWindowMs : KI_CONSTANTS.ROLLING_WINDOW_MS;
 
@@ -241,21 +294,23 @@
     }
   }
 
+  // --- Census ---
+
   async function startCensus() {
+    if (!active || !census) return;
     const now = Date.now();
     census.start(now);
     console.log('[KickInsights] Census started');
   }
 
   async function finishCensus() {
+    if (!census) return;
     census.stop();
     const result = census.getResult();
     if (!result) return;
 
     const windowMs = settings ? settings.rollingWindowMs : KI_CONSTANTS.ROLLING_WINDOW_MS;
-    const passiveUniqueChatters = chatParser.getUniqueChatterCount(
-      result.startTime, windowMs
-    );
+    const passiveUniqueChatters = chatParser.getUniqueChatterCount(result.startTime, windowMs);
     const kickCount = KI_ViewerCountReader.read() || 0;
 
     const derivedRate = KI_Calibration.deriveCensusRate(
@@ -269,6 +324,7 @@
       derivedRate,
     };
 
+    // Save to per-channel calibration profile
     const profile = await KI_Storage.getCalibrationProfile(channelName);
     profile.censusHistory.push({
       timestamp: censusRecord.time,
@@ -284,6 +340,7 @@
 
     participationRate = profile.learnedParticipationRate;
 
+    // Save to session
     const session = await KI_Storage.getActiveSession();
     if (session) {
       session.censuses.push(censusRecord);
@@ -293,14 +350,24 @@
     console.log(`[KickInsights] Census complete: ${result.uniqueUsers} unique users, derived rate: ${derivedRate.toFixed(4)}`);
   }
 
+  // --- Message handling from popup ---
+
   function handleMessage(message, sender, sendResponse) {
     switch (message.type) {
       case 'GET_STATUS': {
+        if (!active || !chatParser) {
+          sendResponse({
+            active: false,
+            channelName: channelName || extractChannelName(),
+          });
+          return true;
+        }
         const now = Date.now();
         const windowMs = settings ? settings.rollingWindowMs : KI_CONSTANTS.ROLLING_WINDOW_MS;
         const uniqueChatters = chatParser.getUniqueChatterCount(now, windowMs);
         const result = KI_EstimationEngine.estimate(uniqueChatters, participationRate);
         sendResponse({
+          active: true,
           channelName,
           kickCount: KI_ViewerCountReader.read(),
           estimatedCount: result.estimatedViewers,
@@ -310,12 +377,18 @@
           uniqueChatters,
           chatRate: chatParser.getChatRate(now, windowMs),
           participationRate,
-          censusActive: census.isActive(),
-          censusRemainingMs: census.isActive() ? census.getRemainingMs(now) : 0,
-          censusUserCount: census.isActive() ? census.getUniqueUserCount() : 0,
+          censusActive: census ? census.isActive() : false,
+          censusRemainingMs: census && census.isActive() ? census.getRemainingMs(now) : 0,
+          censusUserCount: census && census.isActive() ? census.getUniqueUserCount() : 0,
         });
         return true;
       }
+      case 'ACTIVATE':
+        activate().then(() => sendResponse({ ok: true, channelName }));
+        return true;
+      case 'DEACTIVATE':
+        deactivate().then(() => sendResponse({ ok: true }));
+        return true;
       case 'START_CENSUS':
         startCensus();
         sendResponse({ ok: true });
@@ -334,22 +407,11 @@
     }
   }
 
-  window.addEventListener('beforeunload', async () => {
-    if (observer) observer.disconnect();
-    if (snapshotTimer) clearInterval(snapshotTimer);
-    if (updateTimer) clearInterval(updateTimer);
-
-    const session = await KI_Storage.getActiveSession();
-    if (session) {
-      session.endTime = new Date().toISOString();
-      session.duration = Math.round((Date.now() - sessionStartTime) / 1000);
-      await KI_Storage.saveSession(session);
-      await KI_Storage.clearActiveSession();
-    }
-
-    KI_DomInjector.remove();
-    KI_OverlayGraph.destroy();
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', () => {
+    if (active) deactivate();
   });
 
-  init();
+  // Run bootstrap
+  bootstrap();
 })();

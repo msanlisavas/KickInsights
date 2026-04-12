@@ -1,6 +1,9 @@
 (() => {
   const els = {
     channelName: document.getElementById('ki-channel-name'),
+    toggleActive: document.getElementById('ki-toggle-active'),
+    activeLabel: document.getElementById('ki-active-label'),
+    statusSection: document.getElementById('ki-status-section'),
     kickCount: document.getElementById('ki-kick-count'),
     estCount: document.getElementById('ki-est-count'),
     confidence: document.getElementById('ki-confidence'),
@@ -63,6 +66,38 @@
     return chrome.tabs.sendMessage(tab.id, message);
   }
 
+  // Activation toggle
+  els.toggleActive.addEventListener('click', async () => {
+    const status = currentStatus;
+    if (status && status.active) {
+      await sendToContent({ type: 'DEACTIVATE' });
+    } else {
+      await sendToContent({ type: 'ACTIVATE' });
+    }
+    // Refresh immediately
+    setTimeout(pollStatus, 300);
+  });
+
+  function updateActivationUI(isActive) {
+    if (isActive) {
+      els.toggleActive.textContent = 'Stop Tracking';
+      els.toggleActive.classList.remove('ki-btn-primary');
+      els.toggleActive.classList.add('ki-btn-secondary');
+      els.activeLabel.textContent = 'Active';
+      els.activeLabel.style.color = '#53fc18';
+      els.statusSection.style.display = '';
+      // Show all tabs
+      document.querySelectorAll('.ki-tabs, .ki-panel').forEach(el => el.style.removeProperty('display'));
+    } else {
+      els.toggleActive.textContent = 'Start Tracking';
+      els.toggleActive.classList.remove('ki-btn-secondary');
+      els.toggleActive.classList.add('ki-btn-primary');
+      els.activeLabel.textContent = 'Inactive';
+      els.activeLabel.style.color = '#888';
+      els.statusSection.style.display = 'none';
+    }
+  }
+
   async function pollStatus() {
     try {
       const status = await sendToContent({ type: 'GET_STATUS' });
@@ -70,6 +105,10 @@
       currentStatus = status;
 
       els.channelName.textContent = status.channelName || '--';
+      updateActivationUI(status.active);
+
+      if (!status.active) return;
+
       els.kickCount.textContent = status.kickCount ? KI_Format.compactNumber(status.kickCount) : '--';
       els.estCount.textContent = (status.estimatedLow && status.estimatedHigh)
         ? `${KI_Format.compactNumber(status.estimatedLow)}–${KI_Format.compactNumber(status.estimatedHigh)}`
@@ -87,6 +126,7 @@
       }
     } catch (e) {
       els.channelName.textContent = 'Not on a Kick stream';
+      updateActivationUI(false);
     }
   }
 
