@@ -1,5 +1,5 @@
 # Extension Link
-[https://chromewebstore.google.com/detail/nbaidimnboanjpinoffjpeildjoihhnh?utm_source=item-share-cb](https://chromewebstore.google.com/detail/kickinsights/nbaidimnboanjpinoffjpeildjoihhnh)
+[Chrome Extension](https://chromewebstore.google.com/detail/kickinsights/nbaidimnboanjpinoffjpeildjoihhnh)
 
 # KickInsights
 
