@@ -1,3 +1,6 @@
+# Extension Link
+[https://chromewebstore.google.com/detail/nbaidimnboanjpinoffjpeildjoihhnh?utm_source=item-share-cb](https://chromewebstore.google.com/detail/kickinsights/nbaidimnboanjpinoffjpeildjoihhnh)
+
 # KickInsights
 
 A Chrome extension that estimates real viewer counts on [Kick.com](https://kick.com) by analyzing chat activity in real-time.
